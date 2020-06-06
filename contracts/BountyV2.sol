@@ -1,9 +1,15 @@
-pragma solidity ^0.5.16;
+pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-contract Bounty{
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
-    address payable public poster;
+contract Bounty is Ownable, ReentrancyGuard, Pausable{
+
+    using SafeMath for uint256;
+
     address payable public winner;
 
     uint public proposalsCount;
@@ -32,20 +38,15 @@ contract Bounty{
     event ProposalSubmitted( uint proposalId);
     event ProposalAccepted(address bounty, uint proposalId, address indexed _winner, uint amountToWithdraw);
     event BountyClosed(address bounty, string message);
+    event BountyCancelled(address bounty);
+    event BountyRejected(address bounty);
     event BountyAmountUpdated(address bounty, uint newAmount);
     event BountyDetailsUpdated(address bounty);
-    
-    modifier onlyOwner(){ require(msg.sender == poster); _;}
 
     modifier whenBountyOpen(){ require(bountyStatus == Status.Open); _;}
 
-    modifier verifyCaller (address _address) { require (msg.sender == _address); _; }
-
-    modifier paidEnough(uint _amount) { require(msg.value >= _amount); _; }
-
     constructor(uint _amount, string memory _title, string memory _desc) public payable { 
-
-        poster = tx.origin; 
+        transferOwnership(tx.origin);
         winner = address(0);
         amount = _amount;
         description = _desc;
@@ -54,11 +55,14 @@ contract Bounty{
         proposalsCount = 0;
     }
     
-    function() external{ }
+    receive() external payable {}
+
+    fallback() external payable {}
 
     function makeProposal(string memory link, string memory message) 
         public 
-        whenBountyOpen() 
+        whenBountyOpen()
+        whenNotPaused() 
         returns(uint _proposalId)
     {
         require(winner == address(0) && bountyStatus == Status.Open, " Winner already declared");
@@ -82,36 +86,44 @@ contract Bounty{
     function acceptProposal(uint proposalId)
         public 
         payable 
-        verifyCaller(poster) 
+        onlyOwner() 
         whenBountyOpen()
+        whenNotPaused()
     {
         require(proposals[proposalId].submitter != address(0), "You must provide a valid address");        
         require(winner == address(0), "A winner already declared");
         Proposal storage proposal = proposals[proposalId];
-        //uint amountToWithdraw = amount;
-        //require(amountToWithdraw <= address(this).balance, "Insufficient funds available");
-        //proposals[proposalId].submitter;
-        
         proposals[proposalId].status = ProposalStatus.Accepted;
+        winner = proposals[proposalId].submitter;
         for(uint i = 0; i < proposalsCollection.length; i++){
             if(proposalsCollection[i].id == proposals[proposalId].id){
                 proposalsCollection[i] = proposal;
             }
         }
         bountyStatus = Status.Closed;
+        proposals[proposalId].submitter.transfer(amount);
         emit ProposalAccepted(address(this), proposalId,proposals[proposalId].submitter,amount);
     }
 
-    function closeBounty() public onlyOwner(){
+    function closeBounty() public onlyOwner() whenNotPaused() {
         require(bountyStatus == Status.Open, 'Bounty already closed');
         bountyStatus = Status.Closed;
         emit BountyClosed(address(this), "Bounty was closed");
     }
 
+    function cancelBounty() public onlyOwner() whenNotPaused() {
+        require(bountyStatus == Status.Open, 'Bounty already closed');
+        bountyStatus = Status.Cancelled;
+        address payable ownerAddress = payable(owner());
+        ownerAddress.transfer(address(this).balance);
+        emit BountyCancelled(address(this));
+    }
+
     function rejectProposal(uint proposalId) 
         public 
-        verifyCaller(poster)
+        onlyOwner()
         whenBountyOpen()
+        whenNotPaused()
     {
         require(proposals[proposalId].status == ProposalStatus.Pending, "You can only cancel pending proposals");
         Proposal storage proposal = proposals[proposalId];
@@ -141,5 +153,9 @@ contract Bounty{
             _linkedIn = proposal.linkedIn;
             _message = proposal.message;
             _status = proposal.status;
+    }
+
+    function getBalance() public view returns(uint){
+        return address(this).balance;
     }
 }

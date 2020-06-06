@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import { Label, Table, Button, Modal, ModalHeader, ModalBody } from "reactstrap";
 import Proposals from "./Proposals";
 
+const deployedRinkebyAddress = "0x250D129F8b7037C0bf10fC44bff295C6e927b5d1";
+
 class RenderMyBounties extends Component{
 
     state = {
@@ -43,11 +45,7 @@ class RenderMyBounties extends Component{
                 const proposals = await instance.methods.getProposals().call({from:currentUser});
                 const proposalsCount = await instance.methods.proposalsCount().call();
                 this.setState({currentUser,instance, proposals,title,winner,proposalsCount,description,createdAt,status, amount:ethAmount})
-
             } catch (error) {
-            alert(
-                `Failed to load web3, accounts, or contract. Check console for details.`,
-            );
             console.error(error);
             }
     }
@@ -58,7 +56,7 @@ class RenderMyBounties extends Component{
 
     handleClose = async (id, e) => {
         try {
-            const tx = await this.state.instance.methods.closeBounty().send({from: this.state.currentUser});
+            const tx = await this.state.instance.methods.cancelBounty().send({from: this.state.currentUser});
             if(tx){
                 window.location.reload()
             }

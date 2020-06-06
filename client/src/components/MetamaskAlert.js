@@ -6,7 +6,7 @@ function MetamaskAlert() {
         <div className="my-5 text-center">
             <h1>Please Install Metamask</h1>
             <img src={metamask_logo} className='mb-4' style={{width:'250'}} alt="Metamask logo"/>
-            <a>Download here</a>
+            <a href="https://www.metamask.io">Download here</a>
         </div>
     )
 }

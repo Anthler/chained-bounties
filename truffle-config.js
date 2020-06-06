@@ -1,4 +1,18 @@
 const path = require("path");
+const dotenv = require('dotenv');
+var HDWalletProvider = require("@truffle/hdwallet-provider");
+
+const dotenvResult = dotenv.config();
+
+if (dotenvResult.error) {
+  throw dotenvResult.error;
+}
+
+const { MNEMONIC, PROVIDER_URL, INFURA_KEY, MY_API_KEY } = process.env;
+
+var infuraRinkebyProvider = `${PROVIDER_URL}${INFURA_KEY}`;
+
+var PROVIDER = new HDWalletProvider(MNEMONIC, infuraRinkebyProvider);
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -8,18 +22,31 @@ module.exports = {
    develop: {
       host: '127.0.0.1',
       port: 8545,
-      network_id: "*"
+      network_id: "*",
+      gasPrice: "7000000000",
+      gas: 6500000
     },
     rinkeby: {
-      //provider: PROVIDER,
+      provider: PROVIDER,
       network_id: 4, // eslint-disable-line camelcase
       gasPrice: "7000000000",
-      gas: 6000000
+      gas: 6500000
     }
   },
+  ens: {
+    enabled: true,
+  },
+  plugins: [
+    'truffle-plugin-verify'
+  ],
+
+  api_keys: {
+    etherscan: "Y6RISPS8C1TVSHGMGNP266CK557ZNDA4QI"
+  },
+
   compilers: {
     solc: {
-      version: "0.5.16" // Fetch exact version from solc-bin (default: truffle's version)
+      version: "0.6.5" // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
       //  optimizer: {

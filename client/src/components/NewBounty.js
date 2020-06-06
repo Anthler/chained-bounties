@@ -1,6 +1,9 @@
 import React, {Component} from "react";
 import { loadWeb3, loadBlockchainData } from "../init";
 import { Label, Form, Input,Button, FormGroup, Col } from "reactstrap";
+import BountyFactory from "../contracts/BountyFactory.json";
+
+const deployedRinkebyAddress = "0x250D129F8b7037C0bf10fC44bff295C6e927b5d1";
 
 class NewBounty extends Component{
 
@@ -9,7 +12,6 @@ class NewBounty extends Component{
         description: '',
         title: '',
         amount: 0,
-        duration: null,
         successful: false,
         web3: null,
         contract: null,
@@ -19,13 +21,21 @@ class NewBounty extends Component{
         try {
             let web3, contract, currentUser;
             loadWeb3();
-            contract = await loadBlockchainData()
             web3 = window.web3;
+            const networkId = await web3.eth.net.getId();
+            const deployedNetwork = BountyFactory.networks[networkId];
+            
+            contract = new window.web3.eth.Contract(
+                BountyFactory.abi,
+                deployedNetwork && deployedNetwork.address
+            );
+
+            //contract = new web3.eth.Contract(BountyFactory.abi, deployedRinkebyAddress)
             currentUser = await web3.currentProvider.selectedAddress
-            this.setState({web3,contract,web3,currentUser})
-  
+            //console.log(contract)
+            this.setState({web3,contract,web3,currentUser})  
           } catch (error) {
-            console.log(error.message)
+            console.log(error)
           }
     }
 
@@ -52,10 +62,12 @@ class NewBounty extends Component{
     render() {
         return(
             <div className="container" >
-            <div className="row row-content">
-                <div className="col-12">
+            <div className="row ">
+                <div className="col-5 offset-4">
                     <h3> Create A New Bounty</h3>
                 </div>
+            </div>
+                <div className="row row-content">
                     <div className="col-12 col-md-9">
                         <Form onSubmit={this.handleSubmit}>
                             <FormGroup row>

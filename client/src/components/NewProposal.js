@@ -1,6 +1,9 @@
 import React, {Component} from "react";
 import { loadWeb3, loadBlockchainData } from "../init";
 import { Label, Form, Input,Button, FormGroup, Col } from "reactstrap";
+import BountyFactory from "../contracts/BountyFactory.json";
+
+const deployedRinkebyAddress = "0x250D129F8b7037C0bf10fC44bff295C6e927b5d1";
 
 class NewProposal extends Component{
 
@@ -19,13 +22,18 @@ class NewProposal extends Component{
         try {
             let web3, contract, currentUser;
             loadWeb3();
-            contract = await loadBlockchainData()
             web3 = window.web3;
+            //contract = new web3.eth.Contract(BountyFactory.abi, deployedRinkebyAddress)
+            const networkId = await web3.eth.net.getId();
+            const deployedNetwork = BountyFactory.networks[networkId];
+            contract = new window.web3.eth.Contract(
+                BountyFactory.abi,
+                deployedNetwork && deployedNetwork.address
+            );
             currentUser = await web3.currentProvider.selectedAddress
             this.setState({web3,contract,web3,currentUser})
-  
           } catch (error) {
-            console.log(error.message)
+            console.log(error)
           }
     }
 
@@ -34,7 +42,7 @@ class NewProposal extends Component{
         const {contract, currentUser, title, amount, description} = this.state
         const tx = await contract.methods.createNewBounty(window.web3.utils.toWei(amount),title, description).send({from: currentUser, value:window.web3.utils.toWei(amount)});
         if(tx){
-            console.log('successfull' + tx)
+            console.log('successfull')
         }
         
     }

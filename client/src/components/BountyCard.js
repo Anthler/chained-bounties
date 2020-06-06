@@ -13,7 +13,7 @@ function RenderCard({amount,description,toggleModal,isModalOpen,proposalsCount,t
                 <CardText>Proposals: {proposalsCount}</CardText>
                 <CardText>Date Created: {createdat}</CardText>
                 <Button type="button" onClick={toggleDescriptionModal} style={{marginBottom:'4px'}} color="btn btn-outline-info">See Description</Button>
-                <Button type="button" onClick={toggleModal} color="btn btn-outline-success">Submit Proposal</Button>
+                <Button type="button" onClick={toggleModal} color="btn btn-success">Submit Proposal</Button>
                 </Card>
             </div>
         );     
@@ -55,7 +55,7 @@ class BountyCard extends Component{
                 const toDate = d.getDate();
                 const toMonth = d.getMonth();
                 const toYear = d.getFullYear();
-                const createdAt = toDate + ' /'+ toMonth + ' /' + toYear
+                const createdAt = toDate + ' / '+ toMonth + ' / ' + toYear
                 const title = await instance.methods.title().call();
                 const ethAmount = window.web3.utils.fromWei(weiAmount, 'ether');
                 const proposalsCount = await instance.methods.proposalsCount().call();

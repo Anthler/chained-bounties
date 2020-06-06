@@ -1,8 +1,12 @@
-pragma solidity ^0.5.16;
+pragma solidity ^0.6.5;
 
 import "./BountyV2.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract BountyFactory{
+contract BountyFactory is Ownable, Pausable{
 
     uint public MAXLIMIT = 20;
 
@@ -14,7 +18,6 @@ contract BountyFactory{
     event BountyCreated(address indexed bountyAddress);
 
     modifier paidEnough(uint _amount) { 
-
         require(msg.value >= _amount);
         _;
     }
@@ -30,27 +33,34 @@ contract BountyFactory{
       _;
   }
 
+  constructor() public {
+      admin = msg.sender;
+      transferOwnership(admin);
+  }
+
     function createNewBounty(
         uint _amount,
         string memory _title, 
         string memory _desc
     )   public 
         payable 
-        // paidEnough(_amount)
-        // checkValue(_amount)
+        whenNotPaused()
+        paidEnough(_amount)
+        checkValue(_amount)
     {
-        
-        //address bountyAddress = (bounty).value(_amount)( _amount, _title, _desc);
         Bounty bounty = new Bounty( _amount, _title, _desc);
-        ownerBounties[msg.sender].push(bounty);
+        address payable bountyAddress = payable(address(bounty));
+        bountyAddress.transfer(_amount);
         isBountyOwner[msg.sender] = true;
+        ownerBounties[msg.sender].push(bounty);
         bounties.push(bounty);
         emit BountyCreated(address(bounty));
     }
 
     function getBounties(uint _limit, uint _offset)
          public 
-         view 
+         view
+         whenNotPaused() 
          returns(Bounty[] memory _bounties)
         {
         require(_offset <= bountiesCount(), 'Bounties should be more than offset');

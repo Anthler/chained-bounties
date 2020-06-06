@@ -10,6 +10,8 @@ import Proposals from "./Proposals";
 import {loadBlockchainData } from "../init";
 import BountyFactory from "../contracts/BountyFactory.json";
 
+const deployedRinkebyAddress = "0x250D129F8b7037C0bf10fC44bff295C6e927b5d1";
+
 class Main extends Component {
   state = { 
     web3: null, 
@@ -31,7 +33,11 @@ class Main extends Component {
           account = await window.web3.currentProvider.selectedAddress;
           const networkId = await web3.eth.net.getId();
           const deployedNetwork = BountyFactory.networks[networkId];
-          instance =  new this.state.web3.eth.Contract(BountyFactory.abi,deployedNetwork && deployedNetwork.address);
+          instance = new web3.eth.Contract(
+            BountyFactory.abi,
+            deployedNetwork && deployedNetwork.address
+          );
+          //instance =  new this.state.web3.eth.Contract(BountyFactory.abi,deployedRinkebyAddress);
           const bounties = await instance.methods.getBounties(10, 0).call({from: account});
           this.setState({instance,bounties,accounts:account}) 
       }

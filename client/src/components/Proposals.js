@@ -20,15 +20,15 @@ class Proposals extends Component{
         this.setState({loading:true})
         const {bounty, address} = this.props;
         let instance, currentUser, web3;
-            loadWeb3();
+        loadWeb3();
+        if(address){
             web3 = window.web3;
             currentUser = await web3.currentProvider.selectedAddress;
-        instance = new web3.eth.Contract(Bounty.abi,address);
-        const proposals = await instance.methods.getProposals().call({from:currentUser});
-        const proposal = await instance.methods.getProposal(1).call({from:currentUser});
-        const bountyPoster = await instance.methods.poster().call();
-
-       this.setState({proposals,bounty,currentUser, bountyPoster ,instance, loading:false})   
+            instance = new web3.eth.Contract(Bounty.abi,address);
+            const proposals = await instance.methods.getProposals().call({from:currentUser});
+            const bountyPoster = await instance.methods.owner().call();
+            this.setState({proposals,bounty,currentUser, bountyPoster ,instance, loading:false})   
+        }
     }
 
     handleAccept = async (id, e) => {
