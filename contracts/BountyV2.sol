@@ -43,7 +43,7 @@ contract Bounty is Ownable, ReentrancyGuard, Pausable{
     event BountyAmountUpdated(address bounty, uint newAmount);
     event BountyDetailsUpdated(address bounty);
 
-    modifier whenBountyOpen(){ require(bountyStatus == Status.Open); _;}
+    modifier whenBountyOpen(){ require(bountyStatus == Status.Open, "bounty is closed"); _;}
 
     constructor(uint _amount, string memory _title, string memory _desc) public payable { 
         transferOwnership(tx.origin);
@@ -63,11 +63,10 @@ contract Bounty is Ownable, ReentrancyGuard, Pausable{
         public 
         whenBountyOpen()
         whenNotPaused() 
-        returns(uint _proposalId)
     {
-        require(winner == address(0) && bountyStatus == Status.Open, " Winner already declared");
+        require(winner == address(0), " Winner already declared");
         proposalsCount++;
-        _proposalId = proposalsCount;
+        uint _proposalId = proposalsCount;
         Proposal storage proposal = proposals[_proposalId];
         proposal.id = _proposalId;
         proposal.linkedIn = link;
