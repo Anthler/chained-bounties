@@ -15,8 +15,7 @@ var infuraRinkebyProvider = `${PROVIDER_URL}${INFURA_KEY}`;
 var PROVIDER = new HDWalletProvider(MNEMONIC, infuraRinkebyProvider);
 
 module.exports = {
-  // See <http://truffleframework.com/docs/advanced/configuration>
-  // to customize your Truffle configuration!
+  
   contracts_build_directory: path.join(__dirname, "client/src/contracts"),
   networks: {
    develop: {
@@ -39,10 +38,6 @@ module.exports = {
   plugins: [
     'truffle-plugin-verify'
   ],
-
-  api_keys: {
-    etherscan: "Y6RISPS8C1TVSHGMGNP266CK557ZNDA4QI"
-  },
 
   compilers: {
     solc: {

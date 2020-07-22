@@ -1,5 +1,5 @@
 const {expectRevert, expectEvent, BN} = require("@openzeppelin/test-helpers");
-const { web3 } = require("@openzeppelin/test-helpers/src/setup");
+// const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const Bounty = artifacts.require('Bounty');
 
 contract("Bounty", (accounts) => {
@@ -49,6 +49,40 @@ contract("Bounty", (accounts) => {
         it("Tests for bounty status", async () => {
             const bountyStatus = await bounty.bountyStatus();
             assert(parseInt(bountyStatus) === 0)
+        })
+    })
+
+    describe("closeBounty ", () => {
+
+        it("should revert for non owner account", async () => {
+            await expectRevert(
+                bounty.closeBounty({from: account2}),
+                "Ownable: caller is not the owner"
+            )
+        })
+
+        it("should emit bounty closed event", async () =>{
+            const receipt = await bounty.closeBounty();
+            expectEvent(
+                receipt, "BountyClosed", 
+                {
+                    bounty: bounty.address, 
+                    message:"Bounty was closed" 
+                })
+        })
+
+        it("should change bounty status to closed", async () => {
+            await bounty.closeBounty();
+            const status = await bounty.bountyStatus();
+            assert(parseInt(status) === 1)
+        })
+
+        it("should revert if bounty already closed", async () => {
+            await bounty.closeBounty();
+            await expectRevert(
+                bounty.closeBounty(),
+                "Bounty already closed"
+            )
         })
     })
 
@@ -144,10 +178,7 @@ contract("Bounty", (accounts) => {
             await bounty.acceptProposal(3)
             const balanceAfter = new BN(await web3.eth.getBalance(account4))
             const difference = balanceAfter.sub(balanceBefore).add(new BN(makeProposalTxCost));
-            //const proposal = bounty.getProposal(3)
             assert.equal(difference.toString(), amount.toString())
-            // assert(parseInt(proposal.status) === 1)
-
         })
 
         it("Should return bounty status closed after accepted", async () =>{
@@ -195,6 +226,16 @@ contract("Bounty", (accounts) => {
             )
         })
 
+        it("Should revert if a proposal was already accepted", async () =>{
+            await bounty.makeProposal("link", "message", {from:account3})
+            await bounty.makeProposal("link2", "message 2", {from:account4})
+            await bounty.acceptProposal(1);
+            await expectRevert(
+                bounty.rejectProposal(1),
+                "bounty is closed"
+            )
+        })
+
         it("Should revert if bounty already closed", async () =>{
             await bounty.makeProposal("last.link", "last message", {from:account4})
             await bounty.closeBounty();
@@ -209,6 +250,93 @@ contract("Bounty", (accounts) => {
             await bounty.rejectProposal(1, {from: admin})
             const proposal = await bounty.getProposal(1)
             assert(parseInt(proposal._status) === 2)
+        })
+    })
+
+    describe("getProposal() ",()=>{
+        it("Should return correct proposal link, message, submitter", async () => {
+            await bounty.makeProposal("test1.link", "test message", {from: account2})
+            await bounty.makeProposal("test1.link2", "test message2", {from: account3})
+            const {_id, _submitter, _linkedIn, _message, _status} = await bounty.getProposal(1);
+            assert(parseInt(_id) === 1)
+            assert(_submitter.toLowerCase() === account2.toLowerCase())
+            assert(_linkedIn === "test1.link")
+            assert(_message === "test message")
+            assert(parseInt(_status) === 0)  
+        })
+    })
+
+    describe("getProposals() ", () => {
+        it("Should return correct proposals information in collection", async () => {
+            await bounty.makeProposal("test1.link", "test message", {from: account2})
+            await bounty.makeProposal("test1.link2", "test message2", {from: account3})
+            const proposals = await bounty.getProposals();
+            assert(parseInt(proposals[0].id) === 1)
+            assert(proposals[0].submitter.toLowerCase() === account2.toLowerCase())
+            assert(proposals[0].linkedIn === "test1.link")
+            assert(proposals[0].message === "test message")
+            assert(parseInt(proposals[0].status) === 0)
+            assert(parseInt(proposals[1].id) === 2)
+            assert(proposals[1].submitter.toLowerCase() === account3.toLowerCase())
+            assert(proposals[1].linkedIn === "test1.link2")
+            assert(proposals[1].message === "test message2")
+            assert(parseInt(proposals[1].status) === 0)
+        })
+
+        it("Should return size of proposals collection", async () =>{
+            await bounty.makeProposal("test1.link", "test message", {from: account2})
+            await bounty.makeProposal("test1.link2", "test message2", {from: account3})
+            await bounty.makeProposal("test1.link2", "test message2", {from: account3})
+            const proposals = await bounty.getProposals();
+            assert.equal(proposals.length, 3)
+        })
+    })
+
+    describe("getBalance() ", () => {
+        it("bounty amount should be equal to bounty contract balance", async () => {
+            const bountyBalance = await bounty.getBalance();
+            const contractAddress = await web3.eth.getBalance(bounty.address)
+            assert.equal(bountyBalance.toString(), contractAddress.toString())
+        })
+    })
+
+    describe("cancelBounty() ", async () =>{
+
+        it("should revert for non owner account", async () => {
+            await expectRevert(
+                bounty.cancelBounty({from: account2}),
+                "Ownable: caller is not the owner"
+            )
+        })
+
+        it("should revert when bounty is already closed", async () => {
+            await bounty.closeBounty();
+            await expectRevert(
+                bounty.cancelBounty({from: admin}),
+                "Bounty already closed"
+            )
+        })
+
+        it("Should return bounty status cancelled", async () => {
+            await bounty.cancelBounty();
+            const status = await bounty.bountyStatus();
+            assert(parseInt(status) === 2)
+        })
+
+        it(" Should transfer contract balance to owner of bounty", async () => {
+            const balanceBefore = new BN(await web3.eth.getBalance(admin))
+            const receipt = await bounty.cancelBounty();
+            const cancelBountyTx = await web3.eth.getTransaction(receipt.tx)
+            const cancelBountyTxCost = Number(cancelBountyTx.gasPrice) * receipt.receipt.gasUsed;
+            const amount = new BN(await bounty.amount());
+            const balanceAfter = new BN(await web3.eth.getBalance(admin))
+            const difference = balanceAfter.sub(balanceBefore).add(new BN(cancelBountyTxCost));
+            assert.equal(difference.toString(), amount.toString())
+        })
+
+        it("should emit BountyCancelled event", async () => {
+            const receipt = await bounty.cancelBounty();
+            expectEvent(receipt, "BountyCancelled", {bounty: bounty.address})
         })
     })
 
