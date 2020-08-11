@@ -37,7 +37,6 @@ class Main extends Component {
             BountyFactory.abi,
             deployedNetwork && deployedNetwork.address
           );
-          //instance =  new this.state.web3.eth.Contract(BountyFactory.abi,deployedRinkebyAddress);
           const bounties = await instance.methods.getBounties(10, 0).call({from: account});
           this.setState({instance,bounties,accounts:account}) 
       }

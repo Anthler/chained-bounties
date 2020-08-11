@@ -114,7 +114,7 @@ class Proposals extends Component{
                         </Breadcrumb>
                 </div>
                 <div className="row">
-                    <h4> Sumitted Proposals for Bounty : {this.props.bounty} </h4>
+                    <h4> Proposals submitted for Bounty : {this.props.bounty} </h4>
                 </div>
                 <div className="row">
                     {content}

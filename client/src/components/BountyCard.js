@@ -5,13 +5,13 @@ import { Card,Button, CardText, CardTitle, Modal, ModalHeader,ModalBody,Form, Fo
 
 function RenderCard({amount,description,toggleModal,isModalOpen,proposalsCount,title,status,createdat, toggleDescriptionModal, descriptionModalOpen}){
         return(
-            <div className="ml-5">
-                <Card  className="mb-5 p-4" body outline color="success">
+            <div className="col-md-4 mb-4">
+                <Card style={{maxWidth: "250px"}} body outline color="success">
                 <CardTitle><strong>{title}</strong></CardTitle>
-                <CardText>Amount: {amount} ETH</CardText>
-                <CardText>Status: {status}</CardText>
-                <CardText>Proposals: {proposalsCount}</CardText>
-                <CardText>Date Created: {createdat}</CardText>
+                <CardText style={{color: "#697477"}}>Amount: {amount} ETH</CardText>
+                <CardText style={{color: "#697477"}}>Status: {status}</CardText>
+                <CardText style={{color: "#697477"}}>Proposals Count: {proposalsCount}</CardText>
+                <CardText style={{color: "green"}}>Date Created: {createdat}</CardText>
                 <Button type="button" onClick={toggleDescriptionModal} style={{marginBottom:'4px'}} color="btn btn-outline-info">See Description</Button>
                 <Button type="button" onClick={toggleModal} color="btn btn-success">Submit Proposal</Button>
                 </Card>
@@ -99,8 +99,7 @@ class BountyCard extends Component{
         }
 
         return(
-            <div className="row">
-                <div className="d-flex justify-content-center">
+            <>
                     <RenderCard 
                         status={status}
                         description={this.state.description}
@@ -113,7 +112,6 @@ class BountyCard extends Component{
                         toggleDescriptionModal={this.toggleDescriptionModal}
                         descriptionModalOpen={this.state.descriptionModalOpen}
                     />
-                </div>
                 <Modal isOpen={this.state.isModalOpen} toggle={this.toggleModal} >
 
                     <ModalHeader>Submit Proposal</ModalHeader>
@@ -151,7 +149,7 @@ class BountyCard extends Component{
                        <p> {this.state.description} </p>
                     </ModalBody>
                 </Modal>
-            </div>
+            </>
         )
     }
     

@@ -18,9 +18,6 @@ class Header extends Component{
                 <Navbar dark expand="md">
                     <div className="container">
                         <NavbarToggler onClick={this.toggleNavbar} />
-                        {/* <NavbarBrand className="mr-auto">
-                            <img src="assets/images/logo.png" height="30" width="41" alt="og ent" />
-                        </NavbarBrand> */}
                         <Collapse navbar isOpen={this.state.navbarIsOpen}>
                         <Nav navbar >
                             <NavItem>
@@ -47,7 +44,7 @@ class Header extends Component{
                         <div className="row row-header">
                             <div className="col-12 col-sm-6">
                                 <h1>DAPPY BOUNTIES</h1>
-                                <p>Number One Place For All Bounties</p>
+                                <p>Work on bounties and get paid in cryptocurrencies</p>
                             </div>
                         </div>
                     </div>

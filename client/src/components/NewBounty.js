@@ -11,7 +11,7 @@ class NewBounty extends Component{
         currentUser: '',
         description: '',
         title: '',
-        amount: 0,
+        amount: '',
         successful: false,
         web3: null,
         contract: null,

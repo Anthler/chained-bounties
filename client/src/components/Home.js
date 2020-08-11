@@ -1,10 +1,8 @@
 import React, { Component } from "react";
 import getWeb3 from "../getWeb3";
-import { loadBlockchainData, loadWeb3 } from "../init";
+import { loadWeb3 } from "../init";
 import BountyFactory from "../contracts/BountyFactory.json";
 import BountyCard from "./BountyCard";
-
-const deployedRinkebyAddress = "0x250D129F8b7037C0bf10fC44bff295C6e927b5d1";
 
 class Home extends Component{
 
@@ -30,7 +28,6 @@ class Home extends Component{
             BountyFactory.abi,
             deployedNetwork && deployedNetwork.address
           );
-          //instance = new web3.eth.Contract(BountyFactory.abi, deployedRinkebyAddress)
           currentUser = await web3.currentProvider.selectedAddress;
           const bounties = await instance.methods.getBounties(10, 0).call({from: currentUser})
           if(bounties){
@@ -45,7 +42,9 @@ class Home extends Component{
    render() {
 
      const bounty = this.state.bounties.map(bounty =>{
-          return(<BountyCard key={bounty} bounty={bounty}/>)
+          return(
+             <BountyCard key={bounty} bounty={bounty}/>
+          )
       })
 
       if(this.state.loading){
@@ -67,9 +66,9 @@ class Home extends Component{
       }
       else{
         return (
-        <div className="container d-flex flex-column justify-content-between">
+        <div className="container">
           <div className="row">
-            <div className="col-md-6 offset-3 mb-5">
+            <div className="col-md-6 offset-5 mb-5">
               <h2>BOUNTIES</h2>
             </div>
           </div>
