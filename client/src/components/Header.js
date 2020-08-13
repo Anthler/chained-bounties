@@ -39,11 +39,11 @@ class Header extends Component{
                     </Collapse>
                     </div>
                 </Navbar>
-                <Jumbotron className="jumbotron">
+                <Jumbotron className="jumbotron" style={{marginBottom: "100px"}}>
                     <div className="container" >
                         <div className="row row-header">
                             <div className="col-12 col-sm-6">
-                                <h1>DAPPY BOUNTIES</h1>
+                                <h1>CHAINED BOUNTIES</h1>
                                 <p>Work on bounties and get paid in cryptocurrencies</p>
                             </div>
                         </div>
